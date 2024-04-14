@@ -1,0 +1,51 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <algorithm>
+
+struct Process {
+    int pid;
+    int bt;
+    int at; // Arrival Time
+};
+
+void findAvgTime(std::vector<Process>& proc) {
+    int n = proc.size();
+    std::vector<int> rt(n);
+
+    for (int i = 0; i < n; i++)
+        rt[i] = proc[i].bt;
+
+    int complete = 0, t = 0, minm = INT_MAX;
+    int shortest = 0, finish_time;
+    bool check = false;
+
+    while (complete != n) {
+        for (int j = 0; j < n; j++) {
+            if ((proc[j].at <= t) && (rt[j] < minm) && rt[j] > 0) {
+                minm = rt[j];
+                shortest = j;
+                check = true;
+            }
+        }
+
+        if (!check) {
+            t++;
+            continue;
+        }
+
+        rt[shortest]--;
+
+        minm = rt[shortest];
+        if (minm == 0)
+            minm = INT_MAX;
+
+        if (rt[shortest] == 0) {
+            complete++;
+            check = false;
+            finish_time = t + 1;
+            std::cout << "Process " << proc[shortest].pid << " finishes at " << finish_time << std::endl;
+        }
+        t++;
+    }
+}
