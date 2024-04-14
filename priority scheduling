@@ -1,0 +1,48 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+struct Process {
+    int id;
+    int arrivalTime;
+    int burstTime;
+    int priority;
+};
+
+bool sortByArrivalTime(const Process& a, const Process& b) {
+    return a.arrivalTime < b.arrivalTime;
+}
+
+bool sortByPriority(const Process& a, const Process& b) {
+    return a.priority > b.priority;
+}
+
+void priorityScheduling(std::vector<Process>& processes) {
+    std::sort(processes.begin(), processes.end(), sortByArrivalTime);
+
+    int currentTime = 0;
+    int totalProcesses = processes.size();
+    std::vector<bool> executed(totalProcesses, false);
+
+    while (currentTime < totalProcesses) {
+        std::sort(processes.begin(), processes.end(), sortByPriority);
+
+        int highestPriorityIdx = -1;
+        for (int i = 0; i < totalProcesses; i++) {
+            if (!executed[i] && processes[i].arrivalTime <= currentTime) {
+                highestPriorityIdx = i;
+                break;
+            }
+        }
+
+        if (highestPriorityIdx != -1) {
+            Process currentProcess = processes[highestPriorityIdx];
+            executed[highestPriorityIdx] = true;
+
+            std::cout << "Executing process ID: " << currentProcess.id << std::endl;
+            currentTime += currentProcess.burstTime;
+        } else {
+            currentTime++;
+        }
+    }
+}
