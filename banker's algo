@@ -1,0 +1,81 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+class BankersAlgorithm {
+private:
+    int numProcesses;
+    int numResources;
+    vector<vector<int>> allocation;
+    vector<vector<int>> max;
+    vector<int> available;
+    vector<int> work;
+    vector<bool> finish;
+
+public:
+    BankersAlgorithm(int n, int m, vector<vector<int>> alloc, vector<vector<int>> maxNeed, vector<int> avail)
+        : numProcesses(n), numResources(m), allocation(alloc), max(maxNeed), available(avail) {
+        work = vector<int>(avail);
+        finish = vector<bool>(n, false);
+    }
+
+    bool isSafe() {
+        int count = 0;
+        while (count < numProcesses) {
+            bool found = false;
+            for (int p = 0; p < numProcesses; p++) {
+                if (!finish[p]) {
+                    int j;
+                    for (j = 0; j < numResources; j++) {
+                        if (max[p][j] - allocation[p][j] > work[j]) {
+                            break;
+                        }
+                    }
+                    if (j == numResources) {  // If all resources are found
+                        for (int k = 0; k < numResources; k++) {
+                            work[k] += allocation[p][k];
+                        }
+                        finish[p] = true;
+                        found = true;
+                        count++;
+                    }
+                }
+            }
+
+            if (!found) {
+                return false;  // If no process can be found
+            }
+        }
+        return true;  // If all processes are finished
+    }
+
+    bool requestResources(int processId, vector<int> request) {
+        for (int i = 0; i < numResources; i++) {
+            if (request[i] > available[i]) {
+                cout << "Process " << processId << " must wait since resources are not available." << endl;
+                return false;
+            }
+        }
+
+        for (int i = 0; i < numResources; i++) {
+            available[i] -= request[i];
+            allocation[processId][i] += request[i];
+            max[processId][i] -= request[i];
+        }
+
+        if (isSafe()) {
+            cout << "Request can be granted with safety." << endl;
+            return true;
+        } else {
+            cout << "Request cannot be granted as it leads to an unsafe state." << endl;
+            // Rollback
+            for (int i = 0; i < numResources; i++) {
+                available[i] += request[i];
+                allocation[processId][i] -= request[i];
+                max[processId][i] += request[i];
+            }
+            return false;
+        }
+    }
+};
