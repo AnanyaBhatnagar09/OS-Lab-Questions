@@ -1,0 +1,63 @@
+#include <iostream>
+#include <vector>
+
+struct Process {
+    int pid;        // Process ID
+    int bt;         // Burst Time
+    int at;         // Arrival Time
+};
+
+// Function to find the waiting time for all processes
+void findWaitingTime(std::vector<Process>& processes, std::vector<int>& wt) {
+    int n = processes.size();
+    wt[0] = 0;  // waiting time for first process is 0
+
+    // calculating waiting time
+    for (int i = 1; i < n; i++) {
+        // Add burst time of previous processes
+        wt[i] = processes[i - 1].bt + wt[i - 1];
+        // Subtract the arrival time
+        wt[i] -= processes[i].at;
+        // Ensure waiting time is not negative
+        if (wt[i] < 0) wt[i] = 0;
+    }
+}
+
+// Function to calculate turn around time
+void findTurnAroundTime(std::vector<Process>& processes, std::vector<int>& wt, std::vector<int>& tat) {
+    int n = processes.size();
+    for (int i = 0; i < n; i++) {
+        tat[i] = processes[i].bt + wt[i];
+    }
+}
+
+// Function to calculate average time
+void findAvgTime(std::vector<Process>& processes) {
+    int n = processes.size();
+    std::vector<int> wt(n), tat(n);
+    int total_wt = 0, total_tat = 0;
+
+    // Function to find waiting time of all processes
+    findWaitingTime(processes, wt);
+
+    // Function to find turn around time for all processes
+    findTurnAroundTime(processes, wt, tat);
+
+    // Display processes along with all details
+    std::cout << "Processes  " << " Burst time  "
+              << " Waiting time  " << " Turn around time\n";
+
+    // Calculate total waiting time and total turn around time
+    for (int i = 0; i < n; i++) {
+        total_wt += wt[i];
+        total_tat += tat[i];
+        std::cout << "   " << processes[i].pid << "\t\t"
+                  << processes[i].bt << "\t\t "
+                  << wt[i] << "\t\t " << tat[i] << std::endl;
+    }
+
+    std::cout << "Average waiting time = "
+              << (float)total_wt / (float)n << std::endl;
+    std::cout << "Average turn around time = "
+              << (float)total_tat / (float)n << std::endl;
+}
