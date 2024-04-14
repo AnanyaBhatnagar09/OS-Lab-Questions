@@ -1,0 +1,45 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+std::counting_semaphore<1> resource_access(1);  // semaphore for resource access
+std::counting_semaphore<1> read_count_access(1); // semaphore for read count access
+int read_count = 0;
+
+void reader(int id) {
+    while (true) {
+        read_count_access.acquire();
+        read_count++;
+        if (read_count == 1) {
+            resource_access.acquire();
+        }
+        read_count_access.release();
+
+        // Reading
+        std::cout << "Reader " << id << " is reading." << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // simulate read
+
+        read_count_access.acquire();
+        read_count--;
+        if (read_count == 0) {
+            resource_access.release();
+        }
+        read_count_access.release();
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // simulate time between reads
+    }
+}
+
+void writer(int id) {
+    while (true) {
+        resource_access.acquire();
+
+        // Writing
+        std::cout << "Writer " << id << " is writing." << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(300)); // simulate write
+
+        resource_access.release();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // simulate time between writes
+    }
+}
